@@ -5,9 +5,11 @@
 //MySqlConnector gives access to MySqlConnection and 
 //MySqlCommand. 
 using MySqlConnector;
+//lets Program.cs find the comic class
+using ComicApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
-
 // variable for the connection string
 var connectionString = builder.Configuration.GetConnectionString("Default");
 
@@ -25,16 +27,47 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/test", async () =>
-{ 
+// app.MapGet("/test", async () =>
+// { 
+//     using var connection = new MySqlConnection(connectionString);
+//     await connection.OpenAsync();
+
+//     using var cmd = new MySqlCommand("SELECT COUNT(*) FROM comics", connection);
+//     var result = await cmd.ExecuteScalarAsync();
+
+
+//     return $"Conncted! Comics: {result}";
+    
+// });
+
+app.MapGet("/comics", async ()=>
+{
     using var connection = new MySqlConnection(connectionString);
     await connection.OpenAsync();
+    
+    using var cmd = new MySqlCommand("SELECT comic_id, title, description, episode, created_at FROM comics", connection);
+    using var reader = await cmd.ExecuteReaderAsync();
 
-    using var cmd = new MySqlCommand("SELECT COUNT(*) FROM comics", connection);
-    var result = await cmd.ExecuteScalarAsync();
+    var comics = new List<Comic>();
 
+    while (await reader.ReadAsync())
+    {
+        comics.Add(new Comic
+        {   
+            //these get the information that is 
+            // NOT NULLABLE so they just need reader.Get
+            ComicId = reader.GetInt32("comic_id"),
+            Title = reader.GetString("title"),
+            //had to use IsDBNull on columns that can be null. 
+            // IsDBnull uses a a position number and GetOrdinal 
+            // gives us that number to use 
+            Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null: reader.GetString("description"),
+            Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null: reader.GetInt32("episode"),
+            CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null: reader.GetDateOnly("created_at")
+        });
+    }
 
-    return $"Conncted! Comics: {result}";
+    return comics;
     
 });
 
