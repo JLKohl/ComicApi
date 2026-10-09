@@ -44,7 +44,7 @@ app.MapGet("/comics", async ()=>
 {
     using var connection = new MySqlConnection(connectionString);
     await connection.OpenAsync();
-    
+
     using var cmd = new MySqlCommand("SELECT comic_id, title, description, episode, created_at FROM comics", connection);
     using var reader = await cmd.ExecuteReaderAsync();
 
@@ -68,6 +68,38 @@ app.MapGet("/comics", async ()=>
     }
 
     return comics;
+    
+});
+
+app.MapGet("/comics/{id}", async (int id)=>
+{
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+    
+    using var cmd = new MySqlCommand(
+        "SELECT comic_id, title, description, episode, created_at FROM comics WHERE comic_id = @id", 
+        connection
+    );
+    cmd.Parameters.AddWithValue("@id", id);
+
+    using var reader = await cmd.ExecuteReaderAsync();
+
+    if (await reader.ReadAsync())
+    {
+        var comic = new Comic
+        {   
+      
+            ComicId = reader.GetInt32("comic_id"),
+            Title = reader.GetString("title"),
+            Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null: reader.GetString("description"),
+            Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null: reader.GetInt32("episode"),
+            CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null: reader.GetDateOnly("created_at")
+        };
+
+        return Results.Ok(comic);
+    }
+
+    return Results.NotFound();
     
 });
 
