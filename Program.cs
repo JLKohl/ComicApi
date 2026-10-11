@@ -103,6 +103,16 @@ app.MapGet("/comics/{id}", async (int id)=>
     
 });
 
+app.MapGet("/comics/{comic_id}/details", async (int comic_id) => {
+
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    var details = new ComicDetails();
+
+    return details;
+});
+
 
 app.Run();
 
