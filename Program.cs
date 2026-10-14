@@ -141,23 +141,24 @@ app.MapGet("/comics/{id}/details", async (int id) =>
     using (var reader = await cmd.ExecuteReaderAsync())
     {
         if (await reader.ReadAsync())
+        {
+            var comic = new Comic
             {
-                var comic = new Comic
-                {
 
-                    ComicId = reader.GetInt32("comic_id"),
-                    Title = reader.GetString("title"),
-                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
-                    Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null : reader.GetInt32("episode"),
-                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
-                };
+                ComicId = reader.GetInt32("comic_id"),
+                Title = reader.GetString("title"),
+                Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
+                Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null : reader.GetInt32("episode"),
+                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
+            };
 
-                return Results.Ok(comic);
-            }
+            return Results.Ok(comic);
+        }
 
         return Results.NotFound();
-        
-    };
+
+    }
+    ;
 
     return details;
 });
