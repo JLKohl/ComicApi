@@ -129,10 +129,35 @@ app.MapGet("/comics/{id}/details", async (int id) =>
     );
     cmd.Parameters.AddWithValue("@id", id);
 
-    //this part od the code is the 
+    //this part of the code is the 
     //package and holds the information
     // about the comics
     var details = new ComicDetails();
+
+    //Using the block form of using so that 
+    // the first reader will end and we can excute 
+    // more than one query inside of the MapGet. 
+    //Connections can only have one reader open at a time.
+    using (var reader = await cmd.ExecuteReaderAsync())
+    {
+        if (await reader.ReadAsync())
+            {
+                var comic = new Comic
+                {
+
+                    ComicId = reader.GetInt32("comic_id"),
+                    Title = reader.GetString("title"),
+                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
+                    Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null : reader.GetInt32("episode"),
+                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
+                };
+
+                return Results.Ok(comic);
+            }
+
+        return Results.NotFound();
+        
+    };
 
     return details;
 });
