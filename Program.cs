@@ -123,11 +123,13 @@ app.MapGet("/comics/{id}/details", async (int id) =>
     using var connection = new MySqlConnection(connectionString);
     await connection.OpenAsync();
 
-    using var cmd = new MySqlCommand(
+
+    //Line 127-164 is getting the comic
+    using var comicCmd = new MySqlCommand(
         "SELECT comic_id, title, description, episode, created_at FROM comics WHERE comic_id = @id",
         connection
     );
-    cmd.Parameters.AddWithValue("@id", id);
+    comicCmd.Parameters.AddWithValue("@id", id);
 
     //this part of the code is the 
     //package and holds the information
@@ -138,29 +140,39 @@ app.MapGet("/comics/{id}/details", async (int id) =>
     // the first reader will end and we can excute 
     // more than one query inside of the MapGet. 
     //Connections can only have one reader open at a time.
-    using (var reader = await cmd.ExecuteReaderAsync())
+    using (var reader = await comicCmd.ExecuteReaderAsync())
     {
-        if (await reader.ReadAsync())
+        //if the reader is not found we return 
+        // a not found
+        if (!await reader.ReadAsync())
         {
-            var comic = new Comic
-            {
+            return Results.NotFound();
+        } 
 
-                ComicId = reader.GetInt32("comic_id"),
-                Title = reader.GetString("title"),
-                Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
-                Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null : reader.GetInt32("episode"),
-                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
-            };
+        var comic = new Comic
+        {
+            ComicId = reader.GetInt32("comic_id"),
+            Title = reader.GetString("title"),
+            Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
+            Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null : reader.GetInt32("episode"),
+            CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
+        };
 
-            return Results.Ok(comic);
-        }
-
-        return Results.NotFound();
-
+        //adding the new comic details into
+        // the comic details variable 
+        details.Comic = comic;
     }
-    ;
 
-    return details;
+    //this section is getting the characture 
+    using var charCmd = new MySqlCommand(
+        "SELECT comic_id, title, description, episode, created_at FROM comics WHERE comic_id = @id",
+        connection
+    );
+    comicCmd.Parameters.AddWithValue("@id", id);
+    //this section is getting the tag
+
+    return Results.Ok(details);
+
 });
 
 

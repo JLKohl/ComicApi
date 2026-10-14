@@ -8,4 +8,6 @@ GET {{ComicApi_HostAddress}}/comics/
 
 GET {{ComicApi_HostAddress}}/comics/1
 
+###
 
+GET {{ComicApi_HostAddress}}/comics/1/details
