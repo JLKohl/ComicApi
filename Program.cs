@@ -27,19 +27,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// app.MapGet("/test", async () =>
-// { 
-//     using var connection = new MySqlConnection(connectionString);
-//     await connection.OpenAsync();
-
-//     using var cmd = new MySqlCommand("SELECT COUNT(*) FROM comics", connection);
-//     var result = await cmd.ExecuteScalarAsync();
-
-
-//     return $"Conncted! Comics: {result}";
-
-// });
-
 app.MapGet("/comics", async () =>
 {
     using var connection = new MySqlConnection(connectionString);
@@ -163,12 +150,43 @@ app.MapGet("/comics/{id}/details", async (int id) =>
         details.Comic = comic;
     }
 
-    //this section is getting the characture 
+    //lines 166 - are getting the charactures
     using var charCmd = new MySqlCommand(
-        "SELECT comic_id, title, description, episode, created_at FROM comics WHERE comic_id = @id",
+        "SELECT characture_id, title, description, episode, created_at FROM comics WHERE comic_id = @id",
         connection
     );
-    comicCmd.Parameters.AddWithValue("@id", id);
+    charCmd.Parameters.AddWithValue("@id", id);
+
+        using (var reader = await charCmd.ExecuteReaderAsync())
+    {
+        //making a list of charactures that go with the comics
+        var characters = new List<Character>();
+
+        //if the reader is not found we return 
+        // a not found
+        while (await reader.ReadAsync())
+        {
+            characters.Add(new Character
+            {
+                CharacterId = reader.GetInt32("comic_id"),
+                Name = reader.GetString("title"),
+                Age = reader.IsDBNull(reader.GetOrdinal("age")) ? null : reader.GetInt32("age"),
+                Gender = reader.IsDBNull(reader.GetOrdinal("gender")) ? null : reader.GetString("gender"),
+                Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
+                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
+            });
+                
+            
+            //adding the new character details into
+            // the comic details variable 
+            details.Characters = characters; 
+        } 
+        
+        return Results.NotFound();
+  
+    }
+
+
     //this section is getting the tag
 
     return Results.Ok(details);
