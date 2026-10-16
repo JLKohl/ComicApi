@@ -150,9 +150,14 @@ app.MapGet("/comics/{id}/details", async (int id) =>
         details.Comic = comic;
     }
 
-    //lines 166 - are getting the charactures
+    //lines 166 - are getting the characters
     using var charCmd = new MySqlCommand(
-        "SELECT characture_id, title, description, episode, created_at FROM comics WHERE comic_id = @id",
+        """
+        SELECT characters.character_id, name, age, gender, characters.description, characters.created_at 
+        FROM characters 
+        JOIN comic_characters ON comic_characters.comic_id = characters.character_id
+        WHERE comic_characters.character_id = @id
+        """,
         connection
     );
     charCmd.Parameters.AddWithValue("@id", id);
@@ -162,14 +167,14 @@ app.MapGet("/comics/{id}/details", async (int id) =>
         //making a list of charactures that go with the comics
         var characters = new List<Character>();
 
-        //if the reader is not found we return 
-        // a not found
+        //using a lot because we are making 
+        // a list of charcters in each comic
         while (await reader.ReadAsync())
         {
             characters.Add(new Character
             {
-                CharacterId = reader.GetInt32("comic_id"),
-                Name = reader.GetString("title"),
+                CharacterId = reader.GetInt32("character_id"),
+                Name = reader.GetString("name"),
                 Age = reader.IsDBNull(reader.GetOrdinal("age")) ? null : reader.GetInt32("age"),
                 Gender = reader.IsDBNull(reader.GetOrdinal("gender")) ? null : reader.GetString("gender"),
                 Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
@@ -181,15 +186,42 @@ app.MapGet("/comics/{id}/details", async (int id) =>
             // the comic details variable 
             details.Characters = characters; 
         } 
-        
-        return Results.NotFound();
-  
+
     }
 
+        //this section is getting the tag
+        using var tagCmd = new MySqlCommand(
+        """
+        SELECT tags.tag_id, tag_name, tags.created_at 
+        FROM tags 
+        JOIN comic_tags ON comic_tags.comic_id = tags.tag_id
+        WHERE comic_tags.tag_id = @id
+        """,
+        connection
+    );
+        tagCmd.Parameters.AddWithValue("@id", id);
 
-    //this section is getting the tag
+            using (var reader = await tagCmd.ExecuteReaderAsync())
+        {
+            //making a list of tags that go with the comics
+            var tags = new List<Tag>();
 
-    return Results.Ok(details);
+            while (await reader.ReadAsync())
+            {
+                tags.Add(new Tag
+                {
+                    TagId = reader.GetInt32("tag_id"),
+                    TagName = reader.GetString("tag_name"),
+                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
+                });
+                    
+                details.Tags = tags; 
+            } 
+
+        }
+
+        
+        return Results.Ok(details);
 
 });
 
