@@ -6,7 +6,7 @@
 // the information in.
 namespace ComicApi.Models;
 
-public class Comic
+public class Comic : BaseModel
 {
     public int ComicId {get; set; } 
 
@@ -21,5 +21,4 @@ public class Comic
 
     public int? Episode {get; set;}
 
-    public DateOnly? CreatedAt {get; set;}
 }

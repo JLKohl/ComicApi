@@ -2,11 +2,10 @@
 // copied and pasted from Comic.cs then edited
 namespace ComicApi.Models;
 
-public class Tag
+public class Tag : BaseModel
 {
     public int TagId {get; set; } 
 
     public string TagName {get; set; } = string.Empty;
 
-    public DateOnly? CreatedAt {get; set;}
 }

@@ -1,7 +1,7 @@
 //this file will hold the model for characters
 namespace ComicApi.Models;
 
-public class Character
+public class Character : BaseModel
 {
     public int CharacterId {get; set; } 
 
@@ -13,5 +13,4 @@ public class Character
     
     public string? Description {get; set;}
 
-    public DateOnly? CreatedAt {get; set;}
 }
