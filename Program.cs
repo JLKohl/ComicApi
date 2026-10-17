@@ -5,7 +5,7 @@
 //MySqlConnector gives access to MySqlConnection and 
 //MySqlCommand. 
 using MySqlConnector;
-//lets Program.cs find the comic class
+//lets Program.cs find the model classes
 using ComicApi.Models;
 
 
@@ -46,7 +46,7 @@ app.MapGet("/comics", async () =>
             ComicId = reader.GetInt32("comic_id"),
             Title = reader.GetString("title"),
             //had to use IsDBNull on columns that can be null. 
-            // IsDBnull uses a a position number and GetOrdinal 
+            // IsDBNull uses a position number and GetOrdinal
             // gives us that number to use 
             Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
             Episode = reader.IsDBNull(reader.GetOrdinal("episode")) ? null : reader.GetInt32("episode"),
@@ -100,9 +100,9 @@ app.MapGet("/comics/{id}", async (int id) =>
 
 });
 
-//this app.Map get is getting all of the informations individally
-// and then giving the information togeather to the Client as a JSON 
-//so that we can have all of the infromation about the comics 
+//this app.MapGet is getting all of the information individually
+// and then giving the information together to the Client as a JSON
+//so that we can have all of the information about the comics
 // and what is attached to them
 app.MapGet("/comics/{id}/details", async (int id) =>
 {
@@ -111,7 +111,7 @@ app.MapGet("/comics/{id}/details", async (int id) =>
     await connection.OpenAsync();
 
 
-    //Line 127-164 is getting the comic
+    //this section is getting the comic
     using var comicCmd = new MySqlCommand(
         "SELECT comic_id, title, description, episode, created_at FROM comics WHERE comic_id = @id",
         connection
@@ -124,12 +124,12 @@ app.MapGet("/comics/{id}/details", async (int id) =>
     var details = new ComicDetails();
 
     //Using the block form of using so that 
-    // the first reader will end and we can excute 
+    // the first reader will end and we can execute
     // more than one query inside of the MapGet. 
     //Connections can only have one reader open at a time.
     using (var reader = await comicCmd.ExecuteReaderAsync())
     {
-        //if the reader is not found we return 
+        //if no comic was found we return
         // a not found
         if (!await reader.ReadAsync())
         {
@@ -150,13 +150,13 @@ app.MapGet("/comics/{id}/details", async (int id) =>
         details.Comic = comic;
     }
 
-    //lines 166 - are getting the characters
+    //this section is getting the characters
     using var charCmd = new MySqlCommand(
         """
         SELECT characters.character_id, name, age, gender, characters.description, characters.created_at 
         FROM characters 
-        JOIN comic_characters ON comic_characters.comic_id = characters.character_id
-        WHERE comic_characters.character_id = @id
+        JOIN comic_characters ON comic_characters.character_id = characters.character_id
+        WHERE comic_characters.comic_id = @id
         """,
         connection
     );
@@ -164,11 +164,11 @@ app.MapGet("/comics/{id}/details", async (int id) =>
 
         using (var reader = await charCmd.ExecuteReaderAsync())
     {
-        //making a list of charactures that go with the comics
+        //making a list of characters that go with the comic
         var characters = new List<Character>();
 
-        //using a lot because we are making 
-        // a list of charcters in each comic
+        //using a loop because we are making
+        // a list of characters in each comic
         while (await reader.ReadAsync())
         {
             characters.Add(new Character
@@ -189,13 +189,13 @@ app.MapGet("/comics/{id}/details", async (int id) =>
 
     }
 
-        //this section is getting the tag
+        //this section is getting the tags
         using var tagCmd = new MySqlCommand(
         """
         SELECT tags.tag_id, tag_name, tags.created_at 
         FROM tags 
-        JOIN comic_tags ON comic_tags.comic_id = tags.tag_id
-        WHERE comic_tags.tag_id = @id
+        JOIN comic_tags ON comic_tags.tag_id = tags.tag_id
+        WHERE comic_tags.comic_id = @id
         """,
         connection
     );
@@ -203,7 +203,7 @@ app.MapGet("/comics/{id}/details", async (int id) =>
 
             using (var reader = await tagCmd.ExecuteReaderAsync())
         {
-            //making a list of tags that go with the comics
+            //making a list of tags that go with the comic
             var tags = new List<Tag>();
 
             while (await reader.ReadAsync())

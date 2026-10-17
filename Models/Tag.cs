@@ -1,5 +1,4 @@
-//this file will hold the model for tags 
-// copied and pasted from Comic.cs then edited
+//this file will hold the model for tags
 namespace ComicApi.Models;
 
 public class Tag : BaseModel
