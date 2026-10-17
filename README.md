@@ -4,7 +4,7 @@ This project is a C# REST API built with ASP.NET Core. It works with a MySQL dat
 
 I wrote this project code to help me learn more about using C# in a backend set up with MySQL database. Coming from a background of Node Express I am excited to expand my knowledge into other code that can be used in a full stack web development environment. The current stack flow I am working to learn is MySQL --> C# --> TypeScript. 
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://youtu.be/74C6iu6MmOE?si=2ld2wEVIdYHzdTfI)
 
 # Development Environment
 
