@@ -21,13 +21,16 @@ builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowComicSite", policy =>
-        policy.WithOrigins("http://localhost:5173/")
+        policy.WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
             .AllowAnyMethod());
     
 });
 
 var app = builder.Build();
+
+//Using the CORS allower
+app.UseCors("AllowComicSite");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -237,5 +240,4 @@ app.MapGet("/comics/{id}/details", async (int id) =>
 
 
 app.Run();
-app.UseCors("AllowComicSite");
 
