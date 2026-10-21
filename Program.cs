@@ -17,6 +17,16 @@ var connectionString = builder.Configuration.GetConnectionString("Default");
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+//adding CORS permission 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowComicSite", policy =>
+        policy.WithOrigins("http://localhost:5173/")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+    
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -227,5 +237,5 @@ app.MapGet("/comics/{id}/details", async (int id) =>
 
 
 app.Run();
-
+app.UseCors("AllowComicSite");
 
