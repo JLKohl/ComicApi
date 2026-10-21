@@ -8,17 +8,17 @@ namespace ComicApi.Models;
 
 public class Comic : BaseModel
 {
-    public int ComicId {get; set; } 
+    public int ComicId { get; set; }
 
     //have to set the string to something before it runs
     // because it can not be null. The string.Empty gives
     // it an empty string to hold onto so that it is not 
     // null
-    public string Title {get; set; } = string.Empty;
-    
-    //adding the ? means that the column can be null
-    public string? Description {get; set;}
+    public string Title { get; set; } = string.Empty;
 
-    public int? Episode {get; set;}
+    //adding the ? means that the column can be null
+    public string? Description { get; set; }
+
+    public int? Episode { get; set; }
 
 }
