@@ -17,7 +17,9 @@ var connectionString = builder.Configuration.GetConnectionString("Default");
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-//adding CORS permission 
+//adding CORS permission. The information 
+//will not be able to print to the page if
+//we do not add an AddPolicy 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowComicSite", policy =>
