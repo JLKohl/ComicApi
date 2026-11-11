@@ -8,6 +8,7 @@ using MySqlConnector;
 //lets Program.cs find the model classes
 using ComicApi.Models;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -273,21 +274,17 @@ app.MapGet("/characters/{id}", async (int id) =>
     using var connection = new MySqlConnection(connectionString);
     await connection.OpenAsync();
 
-    //this section is getting the comic
-    using var comicCmd = new MySqlCommand(
+    using var charCmd = new MySqlCommand(
         "SELECT character_id, name, age, gender, description, created_at FROM characters WHERE character_id = @id",
         connection
     );
-    comicCmd.Parameters.AddWithValue("@id", id);
+    charCmd.Parameters.AddWithValue("@id", id);
 
-    //making a list of characters that go with the comic
-    var characters = new List<Character>();
+    using var reader = await charCmd.ExecuteReaderAsync();
 
-        //using a loop because we are making
-        // a list of characters in each comic
-    while (await reader.ReadAsync())
+    if (await reader.ReadAsync())
     {
-        characters.Add(new Character
+        var character = new Character
         {
             CharacterId = reader.GetInt32("character_id"),
             Name = reader.GetString("name"),
@@ -295,42 +292,13 @@ app.MapGet("/characters/{id}", async (int id) =>
             Gender = reader.IsDBNull(reader.GetOrdinal("gender")) ? null : reader.GetString("gender"),
             Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
             CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
-        });           
+        };   
+
+         return Results.Ok(character);        
 
     }
-        //this section is getting the tags
-        using var tagCmd = new MySqlCommand(
-        """
-        SELECT tags.tag_id, tag_name, tags.created_at 
-        FROM tags 
-        JOIN comic_tags ON comic_tags.tag_id = tags.tag_id
-        WHERE comic_tags.comic_id = @id
-        """,
-        connection
-    );
-        tagCmd.Parameters.AddWithValue("@id", id);
-
-            using (var reader = await tagCmd.ExecuteReaderAsync())
-        {
-            //making a list of tags that go with the comic
-            var tags = new List<Tag>();
-
-            while (await reader.ReadAsync())
-            {
-                tags.Add(new Tag
-                {
-                    TagId = reader.GetInt32("tag_id"),
-                    TagName = reader.GetString("tag_name"),
-                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
-                });
-                    
-                details.Tags = tags; 
-            } 
-
-        }
-
         
-        return Results.Ok(details);
+    return Results.NotFound();   
 
 });
 
