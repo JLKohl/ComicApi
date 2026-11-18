@@ -36,6 +36,24 @@ var app = builder.Build();
 //Using the CORS allower
 app.UseCors("AllowComicSite");
 
+bool IsAdmin(HttpRequestError request)
+{
+    var header = request.Headers.Authorization.ToString();
+    return header == "Bearer dev-admin";
+}
+
+//test for the admin route
+app.MapGet("/admin/check", (HttpRequest request)=>
+{
+    if (!IsAdmin(request))
+    {
+        return Results.Unauthorized();
+    }
+
+    return Results.Ok("You are an admin!");
+    
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
