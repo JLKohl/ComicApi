@@ -36,7 +36,7 @@ var app = builder.Build();
 //Using the CORS allower
 app.UseCors("AllowComicSite");
 
-bool IsAdmin(HttpRequestError request)
+bool IsAdmin(HttpRequest request)
 {
     var header = request.Headers.Authorization.ToString();
     return header == "Bearer dev-admin";

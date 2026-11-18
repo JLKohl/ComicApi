@@ -11,3 +11,13 @@ GET {{ComicApi_HostAddress}}/comics/1
 ###
 
 GET {{ComicApi_HostAddress}}/comics/1/details
+
+###
+
+GET {{ComicApi_HostAddress}}/admin/check
+
+###
+
+GET {{ComicApi_HostAddress}}/admin/check
+Authorization: Bearer dev-admin
+
