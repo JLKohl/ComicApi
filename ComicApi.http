@@ -21,3 +21,15 @@ GET {{ComicApi_HostAddress}}/admin/check
 GET {{ComicApi_HostAddress}}/admin/check
 Authorization: Bearer dev-admin
 
+
+###
+
+POST {{ComicApi_HostAddress}}/comics
+Authorization: Bearer dev-admin
+Content-Type: application/json
+
+{
+  "title": "Test Comic",
+  "description": "Just testing",
+  "episode": 99
+}

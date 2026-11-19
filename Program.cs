@@ -93,6 +93,39 @@ app.MapGet("/comics", async () =>
 
 });
 
+app.MapPost("/comics", async (HttpRequest request, Comic comic) =>
+{
+    //checking for the token 
+    if (!IsAdmin(request))
+    {
+        return Results.Unauthorized();
+    }
+
+    //opening the connection to SQL
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    //creating the insert command
+    using var cmd = new MySqlCommand(
+        "INSERT INTO comics (title, description, episode) VALUES (@title, @description, @episode)",
+        connection
+    );
+
+    cmd.Parameters.AddWithValue("@title", comic.Title);
+    cmd.Parameters.AddWithValue("@description", comic.Description);
+    cmd.Parameters.AddWithValue("@episode", comic.Episode);
+
+
+    //run, no reader because nothing comes back
+    await cmd.ExecuteNonQueryAsync();
+
+    comic.ComicId = (int)cmd.LastInsertedId;
+
+    return Results.Created($"/comics/{comic.ComicId}", comic);
+
+
+});
+
 app.MapGet("/comics/{id}", async (int id) =>
 {
     using var connection = new MySqlConnection(connectionString);
