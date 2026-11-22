@@ -168,6 +168,33 @@ app.MapGet("/comics/{id}", async (int id) =>
 
 });
 
+//added a route for deleting comics
+app.MapDelete("/comics/{id}", async (HttpRequest request, int id)=>
+{   
+    if (!IsAdmin(request))
+    {
+        return Results.Unauthorized();
+    }
+
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    using var cmd = new MySqlCommand(
+        "DELETE FROM comics WHERE comic_id = @id",
+        connection
+    );
+
+    cmd.Parameters.AddWithValue("@id", id);
+
+    var rows = await cmd.ExecuteNonQueryAsync();
+
+    if(rows == 0)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok($"Deleted comic {id}");
+});
 //this app.MapGet is getting all of the information individually
 // and then giving the information together to the Client as a JSON
 //so that we can have all of the information about the comics

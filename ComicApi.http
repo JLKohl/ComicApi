@@ -6,7 +6,7 @@ GET {{ComicApi_HostAddress}}/comics/
 
 ###
 
-GET {{ComicApi_HostAddress}}/comics/1
+GET {{ComicApi_HostAddress}}/comics/26
 
 ###
 
@@ -33,3 +33,9 @@ Content-Type: application/json
   "description": "Just testing",
   "episode": 99
 }
+
+###
+
+DELETE {{ComicApi_HostAddress}}/comics/26
+Authorization: Bearer dev-admin
+
