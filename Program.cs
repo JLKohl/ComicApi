@@ -126,6 +126,43 @@ app.MapPost("/comics", async (HttpRequest request, Comic comic) =>
 
 });
 
+app.MapPut("/comics/{id}", async (HttpRequest request, Comic comic, int id) =>
+{
+    //checking for the token 
+    if (!IsAdmin(request))
+    {
+        return Results.Unauthorized();
+    }
+
+    //opening the connection to SQL
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    //creating the update command
+    using var cmd = new MySqlCommand(
+        "UPDATE comics SET title = @title, description = @description, episode = @episode WHERE comic_id = @id",
+        connection
+    );
+    cmd.Parameters.AddWithValue("@id", id);
+
+    cmd.Parameters.AddWithValue("@title", comic.Title);
+    cmd.Parameters.AddWithValue("@description", comic.Description);
+    cmd.Parameters.AddWithValue("@episode", comic.Episode);
+
+
+    //run, no reader because nothing comes back
+    var rows = await cmd.ExecuteNonQueryAsync();
+    await cmd.ExecuteNonQueryAsync();
+
+    if(rows == 0)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok($"Edited comic {id}");
+
+});
+
 app.MapGet("/comics/{id}", async (int id) =>
 {
     using var connection = new MySqlConnection(connectionString);
