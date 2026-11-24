@@ -152,7 +152,6 @@ app.MapPut("/comics/{id}", async (HttpRequest request, Comic comic, int id) =>
 
     //run, no reader because nothing comes back
     var rows = await cmd.ExecuteNonQueryAsync();
-    await cmd.ExecuteNonQueryAsync();
 
     if(rows == 0)
     {
