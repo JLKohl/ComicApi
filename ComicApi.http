@@ -29,9 +29,9 @@ Authorization: Bearer dev-admin
 Content-Type: application/json
 
 {
-  "title": "Test Comic",
-  "description": "Just testing",
-  "episode": 99
+  "title": "",
+  "description": "This is a new test",
+  "episode": 201
 }
 
 ###

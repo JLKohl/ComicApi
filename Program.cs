@@ -101,6 +101,10 @@ app.MapPost("/comics", async (HttpRequest request, Comic comic) =>
         return Results.Unauthorized();
     }
 
+    //blocks bad data from getting into the database.
+    if (string.IsNullOrWhiteSpace(comic.Title))
+        return Results.BadRequest("Title is required.");
+
     //opening the connection to SQL
     using var connection = new MySqlConnection(connectionString);
     await connection.OpenAsync();
@@ -133,6 +137,10 @@ app.MapPut("/comics/{id}", async (HttpRequest request, Comic comic, int id) =>
     {
         return Results.Unauthorized();
     }
+
+    //blocks bad data from getting into the database.
+    if (string.IsNullOrWhiteSpace(comic.Title))
+        return Results.BadRequest("Title is required.");
 
     //opening the connection to SQL
     using var connection = new MySqlConnection(connectionString);
