@@ -50,3 +50,16 @@ Content-Type: application/json
   "description": "Just testing",
   "episode": 100
 }
+
+###
+
+POST http://localhost:5147/characters
+Authorization: Bearer dev-admin
+Content-Type: application/json
+
+{
+  "name": "Test Character",
+  "age": 10,
+  "gender": "male",
+  "description": "Just a test"
+}

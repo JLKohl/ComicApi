@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
             .AllowAnyMethod());
-    
+
 });
 
 var app = builder.Build();
@@ -43,7 +43,7 @@ bool IsAdmin(HttpRequest request)
 }
 
 //test for the admin route
-app.MapGet("/admin/check", (HttpRequest request)=>
+app.MapGet("/admin/check", (HttpRequest request) =>
 {
     if (!IsAdmin(request))
     {
@@ -51,7 +51,7 @@ app.MapGet("/admin/check", (HttpRequest request)=>
     }
 
     return Results.Ok("You are an admin!");
-    
+
 });
 
 // Configure the HTTP request pipeline.
@@ -161,7 +161,7 @@ app.MapPut("/comics/{id}", async (HttpRequest request, Comic comic, int id) =>
     //run, no reader because nothing comes back
     var rows = await cmd.ExecuteNonQueryAsync();
 
-    if(rows == 0)
+    if (rows == 0)
     {
         return Results.NotFound();
     }
@@ -213,8 +213,8 @@ app.MapGet("/comics/{id}", async (int id) =>
 });
 
 //added a route for deleting comics
-app.MapDelete("/comics/{id}", async (HttpRequest request, int id)=>
-{   
+app.MapDelete("/comics/{id}", async (HttpRequest request, int id) =>
+{
     if (!IsAdmin(request))
     {
         return Results.Unauthorized();
@@ -232,7 +232,7 @@ app.MapDelete("/comics/{id}", async (HttpRequest request, int id)=>
 
     var rows = await cmd.ExecuteNonQueryAsync();
 
-    if(rows == 0)
+    if (rows == 0)
     {
         return Results.NotFound();
     }
@@ -273,7 +273,7 @@ app.MapGet("/comics/{id}/details", async (int id) =>
         if (!await reader.ReadAsync())
         {
             return Results.NotFound();
-        } 
+        }
 
         var comic = new Comic
         {
@@ -301,7 +301,7 @@ app.MapGet("/comics/{id}/details", async (int id) =>
     );
     charCmd.Parameters.AddWithValue("@id", id);
 
-        using (var reader = await charCmd.ExecuteReaderAsync())
+    using (var reader = await charCmd.ExecuteReaderAsync())
     {
         //making a list of characters that go with the comic
         var characters = new List<Character>();
@@ -319,48 +319,48 @@ app.MapGet("/comics/{id}/details", async (int id) =>
                 Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
                 CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
             });
-                
-            
+
+
             //adding the new character details into
             // the comic details variable 
-            details.Characters = characters; 
-        } 
+            details.Characters = characters;
+        }
 
     }
 
-        //this section is getting the tags
-        using var tagCmd = new MySqlCommand(
-        """
+    //this section is getting the tags
+    using var tagCmd = new MySqlCommand(
+    """
         SELECT tags.tag_id, tag_name, tags.created_at 
         FROM tags 
         JOIN comic_tags ON comic_tags.tag_id = tags.tag_id
         WHERE comic_tags.comic_id = @id
         """,
-        connection
-    );
-        tagCmd.Parameters.AddWithValue("@id", id);
+    connection
+);
+    tagCmd.Parameters.AddWithValue("@id", id);
 
-            using (var reader = await tagCmd.ExecuteReaderAsync())
+    using (var reader = await tagCmd.ExecuteReaderAsync())
+    {
+        //making a list of tags that go with the comic
+        var tags = new List<Tag>();
+
+        while (await reader.ReadAsync())
         {
-            //making a list of tags that go with the comic
-            var tags = new List<Tag>();
-
-            while (await reader.ReadAsync())
+            tags.Add(new Tag
             {
-                tags.Add(new Tag
-                {
-                    TagId = reader.GetInt32("tag_id"),
-                    TagName = reader.GetString("tag_name"),
-                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
-                });
-                    
-                details.Tags = tags; 
-            } 
+                TagId = reader.GetInt32("tag_id"),
+                TagName = reader.GetString("tag_name"),
+                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
+            });
 
+            details.Tags = tags;
         }
 
-        
-        return Results.Ok(details);
+    }
+
+
+    return Results.Ok(details);
 
 });
 
@@ -414,16 +414,54 @@ app.MapGet("/characters/{id}", async (int id) =>
             Gender = reader.IsDBNull(reader.GetOrdinal("gender")) ? null : reader.GetString("gender"),
             Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString("description"),
             CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? null : reader.GetDateOnly("created_at")
-        };   
+        };
 
-         return Results.Ok(character);        
+        return Results.Ok(character);
 
     }
-        
-    return Results.NotFound();   
+
+    return Results.NotFound();
 
 });
 
+//characture routes
+app.MapPost("/characters", async (HttpRequest request, Character character) =>
+{
+    //checking for the token 
+    if (!IsAdmin(request))
+    {
+        return Results.Unauthorized();
+    }
+
+    //blocks bad data from getting into the database.
+    if (string.IsNullOrWhiteSpace(character.Name))
+        return Results.BadRequest("Name is required.");
+
+    //opening the connection to SQL
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    //creating the insert command
+    using var cmd = new MySqlCommand(
+        "INSERT INTO characters (name, age, gender, description) VALUES (@name, @age, @gender, @description)",
+        connection
+    );
+
+    cmd.Parameters.AddWithValue("@name", character.Name);
+    cmd.Parameters.AddWithValue("@age", character.Age);
+    cmd.Parameters.AddWithValue("@gender", character.Gender);
+    cmd.Parameters.AddWithValue("@description", character.Description);
+
+
+    //run, no reader because nothing comes back
+    await cmd.ExecuteNonQueryAsync();
+
+    character.CharacterId = (int)cmd.LastInsertedId;
+
+    return Results.Created($"/characters/{character.CharacterId}", character);
+
+
+});
 
 app.Run();
 
