@@ -76,3 +76,8 @@ Content-Type: application/json
   "gender": "male",
   "description": "Just a test edit"
 }
+
+###
+
+DELETE {{ComicApi_HostAddress}}/characters/11
+Authorization: Bearer dev-admin

@@ -505,6 +505,32 @@ app.MapPut("/characters/{id}", async (HttpRequest request, Character character, 
 
 });
 
+app.MapDelete("/characters/{id}", async (HttpRequest request, int id) =>
+{
+    if (!IsAdmin(request))
+    {
+        return Results.Unauthorized();
+    }
+
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    using var cmd = new MySqlCommand(
+        "DELETE FROM characters WHERE character_id = @id",
+        connection
+    );
+
+    cmd.Parameters.AddWithValue("@id", id);
+
+    var rows = await cmd.ExecuteNonQueryAsync();
+
+    if (rows == 0)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok($"Deleted character {id}");
+});
 
 app.Run();
 
