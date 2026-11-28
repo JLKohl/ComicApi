@@ -63,3 +63,16 @@ Content-Type: application/json
   "gender": "male",
   "description": "Just a test"
 }
+
+###
+
+PUT http://localhost:5147/characters/11
+Authorization: Bearer dev-admin
+Content-Type: application/json
+
+{
+  "name": "another NEW Test Character",
+  "age": 10,
+  "gender": "male",
+  "description": "Just a test edit"
+}

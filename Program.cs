@@ -463,5 +463,49 @@ app.MapPost("/characters", async (HttpRequest request, Character character) =>
 
 });
 
+app.MapPut("/characters/{id}", async (HttpRequest request, Character character, int id) =>
+{
+    //checking for the token 
+    if (!IsAdmin(request))
+    {
+        return Results.Unauthorized();
+    }
+
+    //blocks bad data from getting into the database.
+    if (string.IsNullOrWhiteSpace(character.Name))
+        return Results.BadRequest("Name is required.");
+
+    //opening the connection to SQL
+    using var connection = new MySqlConnection(connectionString);
+    await connection.OpenAsync();
+
+    //creating the update command
+    using var cmd = new MySqlCommand(
+        "UPDATE characters SET name = @name, age = @age, gender = @gender, description = @description WHERE character_id = @id",
+        connection
+    );
+
+    cmd.Parameters.AddWithValue("@id", id);
+    cmd.Parameters.AddWithValue("@name", character.Name);
+    cmd.Parameters.AddWithValue("@age", character.Age);
+    cmd.Parameters.AddWithValue("@gender", character.Gender);
+    cmd.Parameters.AddWithValue("@description", character.Description);
+
+
+
+    //run, no reader because nothing comes back
+    var rows = await cmd.ExecuteNonQueryAsync();
+
+    if (rows == 0)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok($"Edited character {id}");
+
+});
+
+
 app.Run();
+
 
